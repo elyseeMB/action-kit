@@ -1,0 +1,41 @@
+# Action Kit
+
+A lightweight, type-safe action-based architecture for Node.js.
+
+## Features
+
+- Class-based actions
+- Type-safe route decorators
+- Lazy-loaded actions
+- Built-in controller handling
+- Reusable action logic
+- Async support
+
+## Example
+
+```ts
+import { BaseAction } from "action-kit";
+import { Get } from "action-kit/router";
+
+@Get("/users")
+export default class GetUsers extends BaseAction {
+  async asController(req, res) {
+    const users = await this.handle();
+    return res.json(users);
+  }
+
+  async handle() {
+    return [];
+  }
+}
+```
+
+## Define a route
+
+```ts
+await defineRoute(app, () => import("./actions/users/get_users"));
+```
+
+## License
+
+MIT
