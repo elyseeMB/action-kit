@@ -14,8 +14,8 @@ A lightweight, type-safe action-based architecture for Node.js.
 ## Example
 
 ```ts
-import { BaseAction } from "action-kit";
-import { Get } from "action-kit/router";
+import { BaseAction } from "#actions/base_action";
+import { Get } from "#router/decorators";
 
 @Get("/users")
 export default class GetUsers extends BaseAction {
