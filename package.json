@@ -5,11 +5,11 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev:server": "hot-runner --node-args=\"--import=tsx\" ./src/app.ts",
+    "dev:server": "hot-runner --node-args=\"--import=tsx\" ./src/server.ts",
     "dev:vite": "vite",
     "dev": "concurrently -n server,vite -c blue,green \"npm:dev:server\" \"npm:dev:vite\"",
     "build": "vite build",
-    "start": "NODE_ENV=production node --import=tsx ./src/app.ts",
+    "start": "NODE_ENV=production node --import=tsx ./src/server.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
