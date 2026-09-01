@@ -1,8 +1,8 @@
-import type { BaseAction } from "#actions/base_action";
-import { logger } from "#config/logger";
-import type { Express, IRouter, RequestHandler } from "express";
-import { Router } from "express";
-import { ROUTE_META } from "./decorators.ts";
+import type { BaseAction } from '#actions/base_action';
+import { logger } from '#config/logger';
+import type { Express, IRouter, RequestHandler } from 'express';
+import { Router } from 'express';
+import { ROUTE_META } from './decorators.ts';
 
 type ActionLoader = () => Promise<{ default: typeof BaseAction }>;
 

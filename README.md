@@ -14,10 +14,10 @@ A lightweight, type-safe action-based architecture for Node.js.
 ## Example
 
 ```ts
-import { BaseAction } from "#actions/base_action";
-import { Get } from "#router/decorators";
+import { BaseAction } from '#actions/base_action';
+import { Get } from '#router/decorators';
 
-@Get("/users")
+@Get('/users')
 export default class GetUsers extends BaseAction {
   async asController(req, res) {
     const users = await this.handle();

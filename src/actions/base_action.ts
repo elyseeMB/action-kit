@@ -1,5 +1,5 @@
-import { HttpMethod, ROUTE_META } from "#router/decorators";
-import type { NextFunction, Request, Response } from "express";
+import { HttpMethod, ROUTE_META } from '#router/decorators';
+import type { NextFunction, Request, Response } from 'express';
 
 export interface BaseActionnable {
   handle?(...args: any[]): any;
@@ -24,22 +24,17 @@ export abstract class BaseAction implements BaseActionnable {
   };
 
   handle?(...args: any[]): any;
-  asController?(
-    req: Request,
-    res: Response,
-    data?: unknown,
-    ...args: any[]
-  ): Promise<any> | any;
+  asController?(req: Request, res: Response, data?: unknown, ...args: any[]): Promise<any> | any;
   authorize?(req: Request, res: Response): Promise<any> | any;
   validator?: { parse: (input: unknown) => any } | undefined;
 
   static async run<T extends { handle: (...arg: any[]) => any }>(
     this: new (...args: any[]) => T,
-    ...args: Parameters<T["handle"]>
-  ): Promise<ReturnType<T["handle"]>> {
+    ...args: Parameters<T['handle']>
+  ): Promise<ReturnType<T['handle']>> {
     const action = new this();
 
-    if (typeof action.handle !== "function") {
+    if (typeof action.handle !== 'function') {
       throw new Error(`${this.name} does not implement 'handle'`);
     }
     return action.handle(...args);
@@ -53,17 +48,15 @@ export abstract class BaseAction implements BaseActionnable {
   }
   async handleController(req: Request, res: Response, next: NextFunction) {
     try {
-      if (typeof this.asController !== "function") {
-        throw new Error(
-          `${this.constructor.name} does not implement 'asController'`,
-        );
+      if (typeof this.asController !== 'function') {
+        throw new Error(`${this.constructor.name} does not implement 'asController'`);
       }
       const extra: any[] = [];
-      if (typeof this.authorize === "function") {
+      if (typeof this.authorize === 'function') {
         const authorized = await this.authorize(req, res);
-        if (typeof authorized !== "undefined") {
+        if (typeof authorized !== 'undefined') {
           if (!authorized) {
-            return res.status(403).json({ error: "Forbidden" });
+            return res.status(403).json({ error: 'Forbidden' });
           }
           extra.unshift(authorized);
         }
