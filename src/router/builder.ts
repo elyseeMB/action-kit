@@ -6,94 +6,77 @@ import { ROUTE_META } from "./decorators.ts";
 
 type ActionLoader = () => Promise<{ default: typeof BaseAction }>;
 
-class RouteDefinition {
-  readonly middlewares: RequestHandler[] = [];
-
-  constructor(private readonly loader: ActionLoader) {}
-
-  middleware(...mw: RequestHandler[]): this {
-    this.middlewares.push(...mw);
-    return this;
-  }
-
-  async register(app: IRouter) {
-    try {
-      const { default: mod } = await this.loader();
-      const { method, path } = mod[ROUTE_META];
-      //@ts-expect-error dynamic method access
-      app[method](path, ...this.middlewares, mod.handleController());
-    } catch (error) {
-      logger.error({ error });
-    }
+async function loadRoute(
+  router: IRouter,
+  loader: ActionLoader,
+  middlewares: RequestHandler[] = [],
+) {
+  try {
+    const { default: mod } = await loader();
+    const { method, path } = mod[ROUTE_META];
+    //@ts-expect-error dynamic method access
+    router[method](path, ...middlewares, mod.handleController());
+  } catch (error) {
+    logger.error({ error });
   }
 }
 
-class RouteGroup {
-  private readonly entries: (RouteDefinition | RouteGroup)[] = [];
-  private readonly middlewares: RequestHandler[] = [];
-  private prefixPath = "/";
+class RouteBuilder {
+  private readonly router: IRouter;
+  private readonly pending: Promise<void>[] = [];
 
-  add(entry: RouteDefinition | RouteGroup) {
-    this.entries.push(entry);
+  constructor(router: IRouter = Router()) {
+    this.router = router;
   }
 
-  prefix(path: string): this {
-    this.prefixPath = path;
+  route(loader: ActionLoader, middlewares: RequestHandler[] = []): this {
+    this.pending.push(loadRoute(this.router, loader, middlewares));
     return this;
   }
 
-  middleware(...mw: RequestHandler[]): this {
-    this.middlewares.push(...mw);
-    return this;
-  }
-
-  async register(app: IRouter) {
-    const router = Router();
-    if (this.middlewares.length) {
-      router.use(...this.middlewares);
+  group(
+    prefix: string,
+    build: (r: RouteBuilder) => void,
+    middlewares: RequestHandler[] = [],
+  ): this {
+    const sub = new RouteBuilder();
+    if (middlewares.length) {
+      sub.router.use(...middlewares);
     }
-    await Promise.all(this.entries.map((e) => e.register(router)));
-    app.use(this.prefixPath, router);
+    build(sub);
+    this.pending.push(
+      sub.ready().then(() => {
+        this.router.use(prefix, sub.router);
+      }),
+    );
+    return this;
+  }
+
+  mount(prefix: string, builder: RouteBuilder): this {
+    this.pending.push(
+      builder.ready().then(() => {
+        this.router.use(prefix, builder.getRouter());
+      }),
+    );
+    return this;
+  }
+
+  getRouter(): IRouter {
+    return this.router;
+  }
+
+  async ready() {
+    await Promise.all(this.pending);
   }
 
   async boot(app: Express) {
-    await this.register(app);
+    await this.ready();
+    app.use(this.router);
   }
 }
 
-let currentGroup: RouteGroup | null = null;
-
-export const router = {
-  route(loader: ActionLoader): RouteDefinition {
-    if (!currentGroup) {
-      throw new Error(
-        "router.route() doit être appelé à l'intérieur de router.group()",
-      );
-    }
-    const def = new RouteDefinition(loader);
-    currentGroup.add(def);
-    return def;
-  },
-
-  use(entry: RouteDefinition | RouteGroup) {
-    if (!currentGroup) {
-      throw new Error(
-        "router.use() doit être appelé à l'intérieur de router.group()",
-      );
-    }
-    currentGroup.add(entry);
-  },
-
-  group(callback: () => void): RouteGroup {
-    const grp = new RouteGroup();
-    const previous = currentGroup;
-    currentGroup = grp;
-    try {
-      callback();
-    } finally {
-      currentGroup = previous;
-    }
-    previous?.add(grp);
-    return grp;
-  },
-};
+export function routes(build: (r: RouteBuilder) => void): RouteBuilder {
+  const r = new RouteBuilder();
+  build(r);
+  return r;
+}

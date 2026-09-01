@@ -1,10 +1,10 @@
-import { router } from "#router/builder";
+import { routes } from "#router/builder";
 import { userRoutes } from "#router/definitions";
 
 export function registerRoutes() {
-  return router
-    .group(() => {
-      router.use(userRoutes());
-    })
-    .prefix("/api/v1");
+  return routes((r) => {
+    r.group("/api/v1", (v1) => {
+      v1.mount("/u", userRoutes());
+    });
+  });
 }
