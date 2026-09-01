@@ -1,8 +1,8 @@
-import { hot } from "hot-hook";
-import express, { type Express } from "express";
-import { pinoHttp } from "pino-http";
 import { logger } from "#config/logger";
+import express, { type Express } from "express";
+import { hot } from "hot-hook";
 import { realpathSync } from "node:fs";
+import { pinoHttp } from "pino-http";
 
 await hot.init({
   root: realpathSync.native(import.meta.filename),
@@ -24,6 +24,7 @@ app.use(
 );
 
 const { registerRoutes } = await import("./routes.ts");
-await registerRoutes(app);
+
+await registerRoutes().boot(app);
 
 app.listen(3000, () => logger.info("Server on http://localhost:3000"));

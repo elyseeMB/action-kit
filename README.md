@@ -30,12 +30,6 @@ export default class GetUsers extends BaseAction {
 }
 ```
 
-## Define a route
-
-```ts
-await defineRoute(app, () => import("./actions/users/get_users"));
-```
-
 ## License
 
 MIT

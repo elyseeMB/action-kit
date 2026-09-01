@@ -1,5 +1,5 @@
 import { HttpMethod, ROUTE_META } from "#router/decorators";
-import type { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 export interface BaseActionnable {
   handle?(...args: any[]): any;

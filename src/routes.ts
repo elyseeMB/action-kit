@@ -1,9 +1,10 @@
-import { defineRoute } from "#router/action";
-import type { Express } from "express";
+import { router } from "#router/builder";
+import { userRoutes } from "#router/definitions";
 
-export async function registerRoutes(app: Express) {
-  await defineRoute(
-    app,
-    () => import("#actions/users/get_user_profile", import.meta.hot?.boundary),
-  );
+export function registerRoutes() {
+  return router
+    .group(() => {
+      router.use(userRoutes());
+    })
+    .prefix("/api/v1");
 }
